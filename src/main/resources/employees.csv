@@ -1,0 +1,16 @@
+id,nama,email,jabatan,departemen,id_manajer,tanggal_bergabung,status_karyawan
+101,Budi Santoso,budi.s@examplecorp.com,Software Engineer,Teknologi,103,2023-05-15,Aktif
+102,Rina Wijaya,rina.w@examplecorp.com,QA Engineer,Teknologi,103,2022-11-20,Aktif
+103,Santi Putri,santi.p@examplecorp.com,Engineering Manager,Teknologi,105,2020-02-10,Aktif
+104,Doni Firmansyah,doni.f@examplecorp.com,Product Manager,Produk,105,2021-08-01,Aktif
+105,Agus Setiawan,agus.s@examplecorp.com,Head of Product & Eng,Manajemen,201,2018-07-21,Aktif
+106,Citra Lestari,citra.l@examplecorp.com,UI/UX Designer,Produk,104,2024-01-30,Aktif
+107,Eko Prasetyo,eko.p@examplecorp.com,Senior Software Engineer,Teknologi,103,2019-12-05,Aktif
+108,Maya Sari,maya.s@examplecorp.com,Head of Sales,Manajemen,201,2019-03-15,Aktif
+109,Leo Gunawan,leo.g@examplecorp.com,Sales Executive,Penjualan,108,2023-09-01,Aktif
+110,Dewi Anggraini,dewi.a@examplecorp.com,Sales Executive,Penjualan,108,2024-02-12,Aktif
+111,Fajar Nugraha,fajar.n@examplecorp.com,HR Manager,Sumber Daya Manusia,201,2020-09-01,Aktif
+112,Hana Yulita,hana.y@examplecorp.com,HR Generalist,Sumber Daya Manusia,111,2023-07-18,Cuti Panjang
+113,Gilang Ramadhan,gilang.r@examplecorp.com,Marketing Specialist,Pemasaran,108,2022-06-22,Aktif
+114,Bella Permata,bella.p@examplecorp.com,Data Scientist,Teknologi,105,2023-11-05,Aktif
+201,Indra Kusuma,indra.k@examplecorp.com,Direktur Utama,Manajemen,,2015-01-10,Aktif
