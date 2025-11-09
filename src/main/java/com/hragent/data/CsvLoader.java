@@ -11,7 +11,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-
 // CsvLoader: Membaca semua CSV files dan populate DataStore
 
 public class CsvLoader {
@@ -70,7 +69,13 @@ public class CsvLoader {
                 String tipeCuti = row[1];
                 int sisaHari = Integer.parseInt(row[2]);
                 
-                LeaveBalance lb = new LeaveBalance(idKaryawan, tipeCuti, sisaHari);
+                // Parse sisaCuti berdasarkan tipe cuti dari CSV
+                int sisaCutiTahunan = tipeCuti.equalsIgnoreCase("Tahunan") ? sisaHari : 0;
+                int sisaCutiSakit = tipeCuti.equalsIgnoreCase("Sakit") ? sisaHari : 0;
+                int sisaCutiMelahirkan = tipeCuti.equalsIgnoreCase("Cuti Melahirkan") ? sisaHari : 0;
+                
+                LeaveBalance lb = new LeaveBalance(idKaryawan, tipeCuti, sisaHari, 
+                                                   sisaCutiTahunan, sisaCutiSakit, sisaCutiMelahirkan);
                 store.addLeaveBalance(lb);
             }
         }
@@ -89,8 +94,14 @@ public class CsvLoader {
                 LocalDate tanggalSelesai = LocalDate.parse(row[4], DATE_FORMATTER);
                 String statusRequest = row[5];
                 
+                // Variabel tambahan untuk LeaveRequest constructor
+                String idCuti = idRequest; // idCuti sama dengan idRequest
+                String jenisCuti = tipeCuti; // jenisCuti sama dengan tipeCuti
+                String statusCuti = statusRequest; // statusCuti sama dengan statusRequest
+                
                 LeaveRequest lr = new LeaveRequest(idRequest, idKaryawan, tipeCuti,
-                                                   tanggalMulai, tanggalSelesai, statusRequest);
+                                                   tanggalMulai, tanggalSelesai, statusRequest, 
+                                                   idCuti, jenisCuti, statusCuti);
                 store.addLeaveRequest(lr);
             }
         }

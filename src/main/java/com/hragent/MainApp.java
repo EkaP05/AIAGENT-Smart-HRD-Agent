@@ -67,15 +67,17 @@ public class MainApp {
     
                 String response;
                 switch (intent) {
-                    case QUESTION -> {
+                    case QUESTION:
                         System.out.println("[Mode: QUERY]");
                         response = queryService.answer(input);
-                    }
-                    case COMMAND -> {
+                        break;
+                    case COMMAND:
                         System.out.println("[Mode: ACTION]");
                         response = actionService.execute(input);
-                    }
-                    default -> response = "Maaf, saya tidak yakin maksud Anda. Ketik 'help' untuk melihat contoh pertanyaan dan perintah.";
+                        break;
+                    default:
+                        response = "Maaf, saya tidak yakin maksud Anda. Ketik 'help' untuk melihat contoh pertanyaan dan perintah.";
+                        break;
                 }
     
                 System.out.println("Agent: " + response + "\n");
@@ -83,20 +85,19 @@ public class MainApp {
     
             scanner.close();
     
-            // // Manual shutdown juga bisa dipanggil di sini
-            // if (llmServiceRef[0] != null) {
-            //     llmServiceRef[0].shutdown();
-            // }
-            // if (dataStoreRef[0] != null) {
-            //     dataStoreRef[0].close();
-            // }
+            // Manual shutdown juga bisa dipanggil di sini
+            if (llmServiceRef[0] != null) {
+                llmServiceRef[0].shutdown();
+            }
+            if (dataStoreRef[0] != null) {
+                dataStoreRef[0].close();
+            }
     
         } catch (Exception e) {
             System.err.println("Failed to load data or initialize services: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
 
     private static void printHeader() {
         System.out.println("╔════════════════════════════════════════════════════════════╗");

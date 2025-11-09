@@ -5,6 +5,7 @@ import com.hragent.domain.Employee;
 import com.hragent.llm.CommandIntent;
 import com.hragent.llm.LLMService;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -125,6 +126,111 @@ public class ActionService {
             return emp != null ? emp.getNama() : null;
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    // ============ EMPLOYEE MANAGEMENT ACTIONS ============
+
+    public String executeUpdateDataKaryawan(int idKaryawan, String newDepartemen, String newJabatan) {
+        try {
+            dataStore.updateDataKaryawan(idKaryawan, newDepartemen, newJabatan);
+            return "✅ Data karyawan berhasil diperbarui. Departemen: " + newDepartemen + ", Jabatan: " + newJabatan;
+        } catch (SQLException e) {
+            return "❌ Gagal memperbarui data karyawan: " + e.getMessage();
+        }
+    }
+
+    public String executeTambahKaryawan(int id, String nama, String email, String jabatan, String departemen, Integer idManajer, String tanggalBergabung) {
+        try {
+            dataStore.tambahKaryawan(id, nama, email, jabatan, departemen, idManajer, tanggalBergabung, "Aktif");
+            return "✅ Karyawan baru " + nama + " berhasil ditambahkan dengan ID " + id;
+        } catch (SQLException e) {
+            return "❌ Gagal menambahkan karyawan baru: " + e.getMessage();
+        }
+    }
+
+    public String executeUpdateStatusKaryawan(int idKaryawan, String newStatus) {
+        try {
+            dataStore.updateStatusKaryawan(idKaryawan, newStatus);
+            return "✅ Status karyawan berhasil diperbarui menjadi: " + newStatus;
+        } catch (SQLException e) {
+            return "❌ Gagal memperbarui status karyawan: " + e.getMessage();
+        }
+    }
+
+    // ============ LEAVE MANAGEMENT ACTIONS ============
+
+    public String executeApproveRejectCuti(String idCuti, String status) {
+        try {
+            dataStore.approveRejectCuti(idCuti, status);
+            return "✅ Cuti dengan ID " + idCuti + " telah " + status.toLowerCase();
+        } catch (SQLException e) {
+            return "❌ Gagal memperbarui status cuti: " + e.getMessage();
+        }
+    }
+
+    public String executeBatalkanCuti(String idCuti) {
+        try {
+            dataStore.batalkanCuti(idCuti);
+            return "✅ Cuti dengan ID " + idCuti + " telah dibatalkan";
+        } catch (SQLException e) {
+            return "❌ Gagal membatalkan cuti: " + e.getMessage();
+        }
+    }
+
+    public String executeUpdateStatusCuti(String idCuti, String newStatus) {
+        try {
+            dataStore.updateStatusCuti(idCuti, newStatus);
+            return "✅ Status cuti berhasil diperbarui menjadi: " + newStatus;
+        } catch (SQLException e) {
+            return "❌ Gagal memperbarui status cuti: " + e.getMessage();
+        }
+    }
+
+    public String executeUpdateSisaCuti(int idKaryawan, String leaveType, int newBalance) {
+        try {
+            dataStore.updateSisaCuti(idKaryawan, leaveType, newBalance);
+            return "✅ Sisa cuti " + leaveType + " berhasil diperbarui menjadi " + newBalance + " hari";
+        } catch (SQLException e) {
+            return "❌ Gagal memperbarui sisa cuti: " + e.getMessage();
+        }
+    }
+
+    public String executeResetCutiTahunan(int jumlahDefault) {
+        try {
+            dataStore.resetCutiTahunan(jumlahDefault);
+            return "✅ Cuti tahunan semua karyawan berhasil direset menjadi " + jumlahDefault + " hari";
+        } catch (SQLException e) {
+            return "❌ Gagal mereset cuti tahunan: " + e.getMessage();
+        }
+    }
+
+    // ============ PERFORMANCE REVIEW ACTIONS ============
+
+    public String executeUpdateSkorReview(String idReview, int skorPerforma) {
+        try {
+            dataStore.updateSkorReview(idReview, skorPerforma);
+            return "✅ Skor performa untuk review " + idReview + " telah diperbarui menjadi " + skorPerforma;
+        } catch (SQLException e) {
+            return "❌ Gagal memperbarui skor review: " + e.getMessage();
+        }
+    }
+
+    public String executeBatalkanReview(String idReview) {
+        try {
+            dataStore.batalkanReview(idReview);
+            return "✅ Review dengan ID " + idReview + " telah dibatalkan";
+        } catch (SQLException e) {
+            return "❌ Gagal membatalkan review: " + e.getMessage();
+        }
+    }
+
+    public String executeSubmitHasilReview(String idReview, int skorPerforma) {
+        try {
+            dataStore.submitHasilReview(idReview, skorPerforma, "Selesai");
+            return "✅ Hasil review untuk " + idReview + " telah disubmit dengan skor " + skorPerforma;
+        } catch (SQLException e) {
+            return "❌ Gagal submit hasil review: " + e.getMessage();
         }
     }
 

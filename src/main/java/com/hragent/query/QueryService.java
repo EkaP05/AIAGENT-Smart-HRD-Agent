@@ -2,6 +2,10 @@ package com.hragent.query;
 
 import com.hragent.data.SQLiteDataStore;
 import com.hragent.domain.Employee;
+import com.hragent.domain.LeaveBalance;
+import com.hragent.domain.LeaveRequest;
+import com.hragent.domain.PerformanceReview;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -39,10 +43,183 @@ public class QueryService {
         return "Maaf, saya tidak tahu bagaimana menjawab pertanyaan ini.";
     }
 
-    private String extractName(String question) {
+    // ============ EMPLOYEE QUERIES ============
+
+    public String answerListKaryawanDepartemen(String departemen) {
         try {
-            List<Employee> employees = store.getAllEmployees();
-            String qLower = question.toLowerCase().replaceAll("[^a-z ]", " ");
+            List<Employee> list = store.getKaryawanByDepartemen(departemen);
+            if (list.isEmpty()) return "Tidak ada karyawan di departemen " + departemen;
+            
+            StringBuilder result = new StringBuilder("Daftar karyawan di departemen " + departemen + ":\n");
+            for (Employee emp : list) {
+                result.append("- ").append(emp.getNama()).append(" (").append(emp.getJabatan()).append(")\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil data karyawan: " + e.getMessage();
+        }
+    }
+
+    public String answerListKaryawanJabatan(String jabatan) {
+        try {
+            List<Employee> list = store.getKaryawanByJabatan(jabatan);
+            if (list.isEmpty()) return "Tidak ada karyawan dengan jabatan " + jabatan;
+            
+            StringBuilder result = new StringBuilder("Daftar karyawan dengan jabatan " + jabatan + ":\n");
+            for (Employee emp : list) {
+                result.append("- ").append(emp.getNama()).append(" (").append(emp.getDepartemen()).append(")\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil data karyawan: " + e.getMessage();
+        }
+    }
+
+    public String answerListKaryawanStatus(String status) {
+        try {
+            List<Employee> list = store.getKaryawanByStatus(status);
+            if (list.isEmpty()) return "Tidak ada karyawan dengan status " + status;
+            
+            StringBuilder result = new StringBuilder("Daftar karyawan dengan status " + status + ":\n");
+            for (Employee emp : list) {
+                result.append("- ").append(emp.getNama()).append(" (").append(emp.getDepartemen()).append(" - ").append(emp.getJabatan()).append(")\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil data karyawan: " + e.getMessage();
+        }
+    }
+
+    // ============ LEAVE QUERIES ============
+
+    public String answerCekStatusCuti(String idCuti) {
+        try {
+            String status = store.getLatestLeaveRequestStatus(idCuti);
+            return "Status cuti dengan ID " + idCuti + ": " + status;
+        } catch (SQLException e) {
+            return "Gagal mengecek status cuti: " + e.getMessage();
+        }
+    }
+
+    public String answerListCutiPending() {
+        try {
+            List<LeaveRequest> list = store.getCutiPending();
+            if (list.isEmpty()) return "Tidak ada pengajuan cuti yang pending";
+            
+            StringBuilder result = new StringBuilder("Daftar cuti yang menunggu approval:\n");
+            for (LeaveRequest req : list) {
+                result.append("- ID: ").append(req.getIdCuti())
+                    .append(", Karyawan ID: ").append(req.getIdKaryawan())
+                    .append(", Jenis: ").append(req.getJenisCuti())
+                    .append(", Tanggal: ").append(req.getTanggalMulai()).append(" s/d ").append(req.getTanggalSelesai())
+                    .append("\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil data cuti pending: " + e.getMessage();
+        }
+    }
+
+    public String answerListSisaCutiSemua() {
+        try {
+            List<LeaveBalance> list = store.getAllLeaveBalances();
+            if (list.isEmpty()) return "Tidak ada data sisa cuti";
+            
+            StringBuilder result = new StringBuilder("Daftar sisa cuti semua karyawan:\n");
+            for (LeaveBalance lb : list) {
+                Employee emp = store.getEmployeeById(lb.getIdKaryawan());
+                String nama = emp != null ? emp.getNama() : "ID " + lb.getIdKaryawan();
+                result.append("- ").append(nama)
+                    .append(": Tahunan=").append(lb.getSisaCutiTahunan())
+                    .append(", Sakit=").append(lb.getSisaCutiSakit())
+                    .append(", Melahirkan=").append(lb.getSisaCutiMelahirkan())
+                    .append("\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil data sisa cuti: " + e.getMessage();
+        }
+    }
+
+    public String answerHistoryCuti(String namaKaryawan) {
+        try {
+            String name = extractName(namaKaryawan);
+            if (name == null) return "Tidak dapat mengenali nama karyawan";
+            
+            Employee emp = store.getEmployeeByName(name);
+            if (emp == null) return "Karyawan tidak ditemukan";
+            
+            List<LeaveRequest> list = store.getHistoryCuti(emp.getId());
+            if (list.isEmpty()) return "Tidak ada riwayat cuti untuk " + name;
+            
+            StringBuilder result = new StringBuilder("Riwayat cuti " + name + ":\n");
+            for (LeaveRequest req : list) {
+                result.append("- ").append(req.getJenisCuti())
+                    .append(" (").append(req.getTanggalMulai()).append(" s/d ").append(req.getTanggalSelesai()).append(")")
+                    .append(" - Status: ").append(req.getStatusCuti())
+                    .append("\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil riwayat cuti: " + e.getMessage();
+        }
+    }
+
+    // ============ PERFORMANCE REVIEW QUERIES ============
+
+    public String answerListReviewTerjadwal() {
+        try {
+            List<PerformanceReview> list = store.getReviewTerjadwal();
+            if (list.isEmpty()) return "Tidak ada review yang terjadwal";
+            
+            StringBuilder result = new StringBuilder("Daftar review yang terjadwal:\n");
+            for (PerformanceReview pr : list) {
+                Employee emp = store.getEmployeeById(pr.getIdKaryawan());
+                Employee reviewer = store.getEmployeeById(pr.getIdReviewer());
+                String namaKaryawan = emp != null ? emp.getNama() : "ID " + pr.getIdKaryawan();
+                String namaReviewer = reviewer != null ? reviewer.getNama() : "ID " + pr.getIdReviewer();
+                
+                result.append("- ID: ").append(pr.getIdReview())
+                    .append(", Karyawan: ").append(namaKaryawan)
+                    .append(", Reviewer: ").append(namaReviewer)
+                    .append(", Tanggal: ").append(pr.getTanggalReview())
+                    .append("\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil data review terjadwal: " + e.getMessage();
+        }
+    }
+
+    public String answerHistoryReview(String namaKaryawan) {
+        try {
+            String name = extractName(namaKaryawan);
+            if (name == null) return "Tidak dapat mengenali nama karyawan";
+            
+            Employee emp = store.getEmployeeByName(name);
+            if (emp == null) return "Karyawan tidak ditemukan";
+            
+            List<PerformanceReview> list = store.getHistoryReview(emp.getId());
+            if (list.isEmpty()) return "Tidak ada riwayat review untuk " + name;
+            
+            StringBuilder result = new StringBuilder("Riwayat review " + name + ":\n");
+            for (PerformanceReview pr : list) {
+                result.append("- Tanggal: ").append(pr.getTanggalReview())
+                    .append(", Skor: ").append(pr.getSkorPerforma())
+                    .append(", Status: ").append(pr.getStatusReview())
+                    .append("\n");
+            }
+            return result.toString();
+        } catch (SQLException e) {
+            return "Gagal mengambil riwayat review: " + e.getMessage();
+        }
+    }
+
+
+        private String extractName(String question) {
+            try {
+                List<Employee> employees = store.getAllEmployees();
+                String qLower = question.toLowerCase().replaceAll("[^a-z ]", " ");
             for (Employee emp : employees) {
                 String namaFull = emp.getNama().toLowerCase();
                 String[] namaTokens = namaFull.split(" ");
