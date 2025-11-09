@@ -5,6 +5,7 @@ import com.hragent.domain.Employee;
 import com.hragent.domain.LeaveBalance;
 import com.hragent.domain.LeaveRequest;
 import com.hragent.domain.PerformanceReview;
+import com.hragent.llm.CommandIntent;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -19,31 +20,114 @@ public class QueryService {
 
     public String answer(String question) {
         String q = question.toLowerCase().trim();
-
+    
+        // System.out.println("[DEBUG QueryService.answer()] Input: " + q);
+    
         try {
-            if (q.contains("siapa") && (q.contains("manajer") || q.contains("manager"))) {
+            // Manager queries
+            if ((q.contains("siapa") || q.contains("apa")) && 
+                (q.contains("manajer") || q.contains("manager"))) {
                 return answerManagerQuery(q);
             }
-            if ((q.contains("sisa") || q.contains("berapa")) && q.contains("cuti")) {
-                return answerLeaveBalanceQuery(q);
-            }
-            if (q.contains("status") && q.contains("cuti")) {
-                return answerLeaveStatusQuery(q);
-            }
-            if (q.contains("jabatan")) {
+            
+            // Job title queries (e.g., "jabatan dewi apa")
+            if (q.contains("jabatan") && (q.contains("apa") || q.contains("siapa"))) {
                 return answerJobTitleQuery(q);
             }
+            
+            // Email queries (e.g., "email santi")
             if (q.contains("email")) {
                 return answerEmailQuery(q);
             }
+            
+            // Leave balance queries
+            if ((q.contains("sisa") || q.contains("berapa")) && q.contains("cuti")) {
+                return answerLeaveBalanceQuery(q);
+            }
+            
+            // Leave status queries (only if has explicit "status" word AND "cuti")
+            if (q.contains("status") && q.contains("cuti")) {
+                return answerLeaveStatusQuery(q);
+            }
+            
+            // Leave history queries
+            if (q.contains("riwayat") && q.contains("cuti")) {
+                return answerHistoryCuti(q);
+            }
+    
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
         }
-
+    
         return "Maaf, saya tidak tahu bagaimana menjawab pertanyaan ini.";
     }
+    
 
-    // ============ EMPLOYEE QUERIES ============
+    public String answerByIntent(String intentName, CommandIntent intent) {
+        try {
+            switch (intentName) {
+                case "list_karyawan_departemen":
+                    return answerListKaryawanDepartemen(intent.getDepartment());
+                
+                case "list_karyawan_jabatan":
+                    return answerListKaryawanJabatan(intent.getPosition());
+                
+                case "list_karyawan_status":
+                    return answerListKaryawanStatus(intent.getStatus());
+                
+                case "cek_status_cuti":
+                    return answerCekStatusCuti(intent.getLeaveId());
+                
+                case "list_cuti_pending":
+                    return answerListCutiPending();
+                
+                case "riwayat_cuti":
+                    return answerHistoryCuti(intent.getEmployeeName());
+                    
+                case "history_cuti":
+                    return answerHistoryCuti(intent.getEmployeeName());
+                
+                case "list_review_terjadwal":
+                    return answerListReviewTerjadwal();
+                
+                case "history_review":
+                    return answerHistoryReview(intent.getEmployeeName());
+
+                case "query_employee_info":
+                case "lookup_employee":
+                case "employee_info":
+                    return answerEmployeeInfo(intent.getEmployeeName());
+                
+                default:
+                    return "Query intent tidak dikenali.";
+            }
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+
+        // ============ EMPLOYEE QUERIES ============
+
+    
+    private String answerEmployeeInfo(String employeeName) throws SQLException {
+        String name = extractName(employeeName);
+        if (name == null) return "Tidak dapat mengenali nama karyawan";
+        
+        Employee emp = store.getEmployeeByName(name);
+        if (emp == null) return "Karyawan tidak ditemukan";
+        
+        // If asking about manager
+        Employee manager = store.getManagerOf(emp);
+        if (manager != null) {
+            return "Manajer " + emp.getNama() + " adalah " + manager.getNama() + ".";
+        }
+        
+        return "Informasi karyawan: " + emp.getNama() + 
+                ", Jabatan: " + emp.getJabatan() + 
+                ", Departemen: " + emp.getDepartemen();
+    }
+        
 
     public String answerListKaryawanDepartemen(String departemen) {
         try {

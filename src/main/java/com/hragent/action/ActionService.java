@@ -25,19 +25,55 @@ public class ActionService {
     public String execute(String command) {
         try {
             CommandIntent intent = llmService.extractIntent(command);
-
+    
             if (intent == null || intent.getIntent() == null) {
                 return "Maaf, saya tidak bisa memahami perintah tersebut.";
             }
-
+    
             switch (intent.getIntent()) {
+                // Original intents
                 case "apply_leave":
                     return executeApplyLeave(intent);
                 case "schedule_review":
                     return executeScheduleReview(intent);
                 case "check_status":
                     return executeCheckStatus(intent);
-                // Add other intent handlers as needed
+                
+                // Employee Management Intents
+                case "update_data_karyawan":
+                    return executeUpdateDataKaryawanFromIntent(intent);
+                case "tambah_karyawan":
+                    return executeTambahKaryawanFromIntent(intent);
+                case "update_status_karyawan":
+                    return executeUpdateStatusKaryawanFromIntent(intent);
+                
+                // Leave Management Intents
+                case "approve_reject_cuti":
+                    return executeApproveRejectCutiFromIntent(intent);
+                case "batalkan_cuti":
+                    return executeBatalkanCutiFromIntent(intent);
+                case "update_sisa_cuti":
+                    return executeUpdateSisaCutiFromIntent(intent);
+                
+                // Performance Review Intents
+                case "update_skor_review":
+                    return executeUpdateSkorReviewFromIntent(intent);
+                case "batalkan_review":
+                    return executeBatalkanReviewFromIntent(intent);
+                case "submit_hasil_review":
+                    return executeSubmitHasilReviewFromIntent(intent);
+                
+                // Query intents (redirect to QueryService for consistency)
+                case "list_karyawan_departemen":
+                case "list_karyawan_jabatan":
+                case "list_karyawan_status":
+                case "cek_status_cuti":
+                case "list_cuti_pending":
+                case "history_cuti":
+                case "list_review_terjadwal":
+                case "history_review":
+                    return "Perintah ini adalah query, mohon gunakan mode QUESTION.";
+                    
                 default:
                     return "Intent '" + intent.getIntent() + "' belum didukung.";
             }
@@ -160,27 +196,27 @@ public class ActionService {
 
     // ============ LEAVE MANAGEMENT ACTIONS ============
 
-    public String executeApproveRejectCuti(String idCuti, String status) {
+    public String executeApproveRejectCuti(String idRequest, String status) {
         try {
-            dataStore.approveRejectCuti(idCuti, status);
-            return "✅ Cuti dengan ID " + idCuti + " telah " + status.toLowerCase();
+            dataStore.approveRejectCuti(idRequest, status);
+            return "✅ Cuti dengan ID " + idRequest + " telah " + status.toLowerCase();
         } catch (SQLException e) {
             return "❌ Gagal memperbarui status cuti: " + e.getMessage();
         }
     }
 
-    public String executeBatalkanCuti(String idCuti) {
+    public String executeBatalkanCuti(String idRequest) {
         try {
-            dataStore.batalkanCuti(idCuti);
-            return "✅ Cuti dengan ID " + idCuti + " telah dibatalkan";
+            dataStore.batalkanCuti(idRequest);
+            return "✅ Cuti dengan ID " + idRequest + " telah dibatalkan";
         } catch (SQLException e) {
             return "❌ Gagal membatalkan cuti: " + e.getMessage();
         }
     }
 
-    public String executeUpdateStatusCuti(String idCuti, String newStatus) {
+    public String executeUpdateStatusCuti(String idRequest, String newStatus) {
         try {
-            dataStore.updateStatusCuti(idCuti, newStatus);
+            dataStore.updateStatusCuti(idRequest, newStatus);
             return "✅ Status cuti berhasil diperbarui menjadi: " + newStatus;
         } catch (SQLException e) {
             return "❌ Gagal memperbarui status cuti: " + e.getMessage();
@@ -232,6 +268,104 @@ public class ActionService {
         } catch (SQLException e) {
             return "❌ Gagal submit hasil review: " + e.getMessage();
         }
+    }
+
+    private String executeUpdateDataKaryawanFromIntent(CommandIntent intent) {
+        try {
+            String employeeName = resolveEmployeeName(intent.getEmployeeName());
+            if (employeeName == null) return "Nama karyawan tidak valid.";
+            
+            Employee emp = dataStore.getEmployeeByName(employeeName);
+            if (emp == null) return "Karyawan tidak ditemukan.";
+            
+            String newDepartemen = intent.getDepartment() != null ? intent.getDepartment() : emp.getDepartemen();
+            String newJabatan = intent.getPosition() != null ? intent.getPosition() : emp.getJabatan();
+            
+            return executeUpdateDataKaryawan(emp.getId(), newDepartemen, newJabatan);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    
+    private String executeTambahKaryawanFromIntent(CommandIntent intent) {
+        try {
+            // Generate new ID (simple: max ID + 1)
+            int maxId = dataStore.getAllEmployees().stream()
+                    .mapToInt(Employee::getId)
+                    .max()
+                    .orElse(0);
+            int newId = maxId + 1;
+            
+            String nama = intent.getEmployeeName();
+            String email = intent.getCategory(); // Using category field for email
+            String jabatan = intent.getPosition();
+            String departemen = intent.getDepartment();
+            String tanggalBergabung = java.time.LocalDate.now().toString();
+            
+            return executeTambahKaryawan(newId, nama, email, jabatan, departemen, null, tanggalBergabung);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    
+    private String executeUpdateStatusKaryawanFromIntent(CommandIntent intent) {
+        try {
+            String employeeName = resolveEmployeeName(intent.getEmployeeName());
+            if (employeeName == null) return "Nama karyawan tidak valid.";
+            
+            Employee emp = dataStore.getEmployeeByName(employeeName);
+            if (emp == null) return "Karyawan tidak ditemukan.";
+            
+            String newStatus = intent.getStatus();
+            return executeUpdateStatusKaryawan(emp.getId(), newStatus);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    
+    private String executeApproveRejectCutiFromIntent(CommandIntent intent) {
+        String leaveId = intent.getLeaveId();
+        String status = intent.getStatus() != null ? intent.getStatus() : "Disetujui";
+        return executeApproveRejectCuti(leaveId, status);
+    }
+    
+    private String executeBatalkanCutiFromIntent(CommandIntent intent) {
+        String leaveId = intent.getLeaveId();
+        return executeBatalkanCuti(leaveId);
+    }
+    
+    private String executeUpdateSisaCutiFromIntent(CommandIntent intent) {
+        try {
+            String employeeName = resolveEmployeeName(intent.getEmployeeName());
+            if (employeeName == null) return "Nama karyawan tidak valid.";
+            
+            Employee emp = dataStore.getEmployeeByName(employeeName);
+            if (emp == null) return "Karyawan tidak ditemukan.";
+            
+            String leaveType = intent.getLeaveType() != null ? intent.getLeaveType() : "Tahunan";
+            int newBalance = intent.getNewBalance() != null ? intent.getNewBalance() : 0;
+            
+            return executeUpdateSisaCuti(emp.getId(), leaveType, newBalance);
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+    
+    private String executeUpdateSkorReviewFromIntent(CommandIntent intent) {
+        String reviewId = intent.getReviewId();
+        int score = intent.getScore() != null ? intent.getScore() : 0;
+        return executeUpdateSkorReview(reviewId, score);
+    }
+    
+    private String executeBatalkanReviewFromIntent(CommandIntent intent) {
+        String reviewId = intent.getReviewId();
+        return executeBatalkanReview(reviewId);
+    }
+    
+    private String executeSubmitHasilReviewFromIntent(CommandIntent intent) {
+        String reviewId = intent.getReviewId();
+        int score = intent.getScore() != null ? intent.getScore() : 0;
+        return executeSubmitHasilReview(reviewId, score);
     }
 
     private LocalDate parseDate(String dateStr) {

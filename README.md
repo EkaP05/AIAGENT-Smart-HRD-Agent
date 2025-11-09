@@ -27,6 +27,7 @@ The key idea is to build a modular, extensible system that:
 - Java 17 (OpenJDK)
 - Maven as build and dependency manager
 - OpenCSV for CSV parsing
+- SQLite as embedded database
 - Jackson for JSON binding
 - Ollama local LLM runtime
 - Qwen2.5:3b model for natural language understanding

@@ -1,4 +1,4 @@
-package com.hragent;
+package com.hragent.util;
 
 import com.hragent.action.*;
 import com.hragent.data.SQLiteDataStore;

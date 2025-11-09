@@ -125,6 +125,46 @@ public class SQLiteDataStore {
         }
     }
 
+    public void loadLeaveRequestsFromCsv(String path) throws Exception {
+        try (CSVReader reader = new CSVReader(new FileReader(path))) {
+            reader.skip(1);
+            String[] line;
+            String sql = "INSERT INTO leave_requests (id_request, id_karyawan, tipe_cuti, tanggal_mulai, tanggal_selesai, status_request) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            while ((line = reader.readNext()) != null) {
+                ps.setString(1, line[0]); // id_request
+                ps.setInt(2, Integer.parseInt(line[1])); // id_karyawan
+                ps.setString(3, line[2]); // tipe_cuti
+                ps.setString(4, line[3]); // tanggal_mulai
+                ps.setString(5, line[4]); // tanggal_selesai
+                ps.setString(6, line[5]); // status_request
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            System.out.println("✅ Leave requests loaded.");
+        }
+    }
+    
+    public void loadPerformanceReviewsFromCsv(String path) throws Exception {
+        try (CSVReader reader = new CSVReader(new FileReader(path))) {
+            reader.skip(1);
+            String[] line;
+            String sql = "INSERT INTO performance_reviews (id_review, id_karyawan, id_reviewer, tanggal_review, skor_performa, status_review) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            while ((line = reader.readNext()) != null) {
+                ps.setString(1, line[0]);  // id_review
+                ps.setInt(2, Integer.parseInt(line[1]));  // id_karyawan
+                ps.setInt(3, Integer.parseInt(line[2]));  // id_reviewer
+                ps.setString(4, line[3]);  // tanggal_review
+                ps.setInt(5, Integer.parseInt(line[4]));  // skor_performa
+                ps.setString(6, line[5]);  // status_review
+                ps.addBatch();
+            }
+            ps.executeBatch();
+            System.out.println("✅ Performance reviews loaded.");
+        }
+    }
+    
     public Employee getEmployeeByName(String name) throws SQLException {
         String sql = "SELECT * FROM employees WHERE LOWER(nama) LIKE ?";
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -178,6 +218,19 @@ public class SQLiteDataStore {
         ps.executeUpdate();
     }
 
+    public String getLatestLeaveRequestStatus(String idRequest) throws SQLException {  // Renamed parameter too
+        String sql = "SELECT status_request FROM leave_requests WHERE id_request = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idRequest);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("status_request");  // ✅ FIXED
+            }
+        }
+        return "Not found";
+    }
+    
+
     public String getLatestLeaveRequestStatus(int idKaryawan) throws SQLException {
         String sql = "SELECT status_request FROM leave_requests WHERE id_karyawan = ? ORDER BY tanggal_mulai DESC LIMIT 1";
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -188,6 +241,7 @@ public class SQLiteDataStore {
         }
         return "Not found";
     }
+
 
     public void insertPerformanceReview(String idReview, int empId, int reviewerId, String tanggalReview, int skor, String status) throws SQLException {
         String sql = "INSERT INTO performance_reviews (id_review, id_karyawan, id_reviewer, tanggal_review, skor_performa, status_review) VALUES (?,?,?,?,?,?)";
@@ -368,7 +422,7 @@ public class SQLiteDataStore {
     // ============ LEAVE MANAGEMENT ============
 
     public List<LeaveRequest> getCutiPending() throws SQLException {
-        String sql = "SELECT * FROM leave_requests WHERE status_cuti = 'Pending'";
+        String sql = "SELECT * FROM leave_requests WHERE status_request = 'Menunggu Persetujuan'";
         List<LeaveRequest> list = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -379,7 +433,7 @@ public class SQLiteDataStore {
     }
 
     public void approveRejectCuti(String idCuti, String newStatus) throws SQLException {
-        String sql = "UPDATE leave_requests SET status_cuti = ? WHERE id_cuti = ?";
+        String sql = "UPDATE leave_requests SET status_request = ? WHERE id_request = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newStatus);
             ps.setString(2, idCuti);
@@ -388,7 +442,7 @@ public class SQLiteDataStore {
     }
 
     public void batalkanCuti(String idCuti) throws SQLException {
-        String sql = "UPDATE leave_requests SET status_cuti = 'Dibatalkan' WHERE id_cuti = ?";
+        String sql = "UPDATE leave_requests SET status_request = 'Dibatalkan' WHERE id_request = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, idCuti);
             ps.executeUpdate();
@@ -563,19 +617,6 @@ public class SQLiteDataStore {
         }
         return null;
     }
-    
-    public String getLatestLeaveRequestStatus(String idCuti) throws SQLException {
-        String sql = "SELECT status_cuti FROM leave_requests WHERE id_cuti = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, idCuti);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getString("status_cuti");
-            }
-        }
-        return "Not found";
-    }
-    
 
 
 }

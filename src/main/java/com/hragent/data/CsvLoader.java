@@ -87,17 +87,17 @@ public class CsvLoader {
             rows.remove(0); 
             
             for (String[] row : rows) {
-                String idRequest = row[0];
+                String idRequest = row[0];        // id_request from CSV
                 int idKaryawan = Integer.parseInt(row[1]);
                 String tipeCuti = row[2];
                 LocalDate tanggalMulai = LocalDate.parse(row[3], DATE_FORMATTER);
                 LocalDate tanggalSelesai = LocalDate.parse(row[4], DATE_FORMATTER);
-                String statusRequest = row[5];
+                String statusRequest = row[5];    // status_request from CSV
                 
-                // Variabel tambahan untuk LeaveRequest constructor
-                String idCuti = idRequest; // idCuti sama dengan idRequest
-                String jenisCuti = tipeCuti; // jenisCuti sama dengan tipeCuti
-                String statusCuti = statusRequest; // statusCuti sama dengan statusRequest
+                // For LeaveRequest constructor (9 params)
+                String idCuti = idRequest;        // Map to match constructor
+                String jenisCuti = tipeCuti;
+                String statusCuti = statusRequest;
                 
                 LeaveRequest lr = new LeaveRequest(idRequest, idKaryawan, tipeCuti,
                                                    tanggalMulai, tanggalSelesai, statusRequest, 
@@ -106,6 +106,7 @@ public class CsvLoader {
             }
         }
     }
+    
 
     private static void loadPerformanceReviews(DataStore store) throws Exception {
         try (CSVReader reader = createReader("/performance_reviews.csv")) {

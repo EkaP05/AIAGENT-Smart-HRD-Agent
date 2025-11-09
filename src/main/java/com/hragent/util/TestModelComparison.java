@@ -1,4 +1,4 @@
-package com.hragent;
+package com.hragent.util;
 
 import com.hragent.llm.*;
 import dev.langchain4j.model.chat.ChatLanguageModel;

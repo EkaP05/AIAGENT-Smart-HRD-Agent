@@ -1,12 +1,9 @@
 package com.hragent.llm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDate;
-
-
-// CommandIntent: untuk hasil ekstraksi LLM
 
 public class CommandIntent {
+    
     @JsonProperty("intent")
     private String intent;
     
@@ -30,11 +27,30 @@ public class CommandIntent {
     
     @JsonProperty("amount")
     private Double amount;
+    
+    // New fields for 16 intents
+    @JsonProperty("department")
+    private String department;
+    
+    @JsonProperty("position")
+    private String position;
+    
+    @JsonProperty("status")
+    private String status;
+    
+    @JsonProperty("leave_id")
+    private String leaveId;
+    
+    @JsonProperty("review_id")
+    private String reviewId;
+    
+    @JsonProperty("score")
+    private Integer score;
+    
+    @JsonProperty("new_balance")
+    private Integer newBalance;
 
-    // Constructors
-    public CommandIntent() {}
-
-    // Getters & Setters
+    // Getters and Setters
     public String getIntent() { return intent; }
     public void setIntent(String intent) { this.intent = intent; }
     
@@ -58,15 +74,25 @@ public class CommandIntent {
     
     public Double getAmount() { return amount; }
     public void setAmount(Double amount) { this.amount = amount; }
-
-    @Override
-    public String toString() {
-        return "CommandIntent{" +
-                "intent='" + intent + '\'' +
-                ", employeeName='" + employeeName + '\'' +
-                ", leaveType='" + leaveType + '\'' +
-                ", startDate='" + startDate + '\'' +
-                ", endDate='" + endDate + '\'' +
-                '}';
-    }
+    
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+    
+    public String getPosition() { return position; }
+    public void setPosition(String position) { this.position = position; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    
+    public String getLeaveId() { return leaveId; }
+    public void setLeaveId(String leaveId) { this.leaveId = leaveId; }
+    
+    public String getReviewId() { return reviewId; }
+    public void setReviewId(String reviewId) { this.reviewId = reviewId; }
+    
+    public Integer getScore() { return score; }
+    public void setScore(Integer score) { this.score = score; }
+    
+    public Integer getNewBalance() { return newBalance; }
+    public void setNewBalance(Integer newBalance) { this.newBalance = newBalance; }
 }

@@ -1,4 +1,4 @@
-package com.hragent;
+package com.hragent.util;
 
 import com.hragent.data.*;
 import com.hragent.query.*;

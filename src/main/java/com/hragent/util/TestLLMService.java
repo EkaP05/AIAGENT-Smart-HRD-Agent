@@ -1,4 +1,4 @@
-package com.hragent;
+package com.hragent.util;
 
 import com.hragent.llm.CommandIntent;
 import com.hragent.llm.LLMService;
