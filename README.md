@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 # AIAGENT-Smart-HRD-Agent
  Proof-of-Concept (PoC) for a Smart HR Agent implemented in Java. The agent acts as a backend CLI application designed to understand employee natural language requests in Bahasa Indonesia
-=======
-# Smart HR Agent - PoC of Ai Agents based on Java
 
 ## Overview
 
@@ -53,7 +50,7 @@ The key idea is to build a modular, extensible system that:
 6. Use natural Bahasa Indonesia commands or questions, e.g.:
 - "siapa manajer budi?"
 - "tolong apply cuti tahunan buat rina dari tgl 3 okt sampai 5 okt"
-7. Type "quit" for close program
+7. Type "quit" or ctrl+C for close program
 
 
 
@@ -61,4 +58,3 @@ The key idea is to build a modular, extensible system that:
 
 This project leverages open source technologies including [Ollama](https://ollama.com) and [LangChain4j](https://github.com/langchain4j/langchain4j), and applies AI-assisted development to build a robust backend system demonstrating state-of-the-art natural language understanding.
 
->>>>>>> 0074876 (base agent hr with java)
